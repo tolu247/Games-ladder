@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Doubles Mix & Match Ladder Board</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            court: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            accent: {
+              gold: '#f59e0b',
+              silver: '#9ca3af',
+              bronze: '#d97706',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    .court-bg-pattern {
+      background-color: #064e3b;
+      background-image: radial-gradient(#10b981 0.75px, transparent 0.75px), radial-gradient(#10b981 0.75px, #064e3b 0.75px);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+      opacity: 0.2;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased selection:bg-court-500 selection:text-white">
+
+  <div class="min-h-screen flex flex-col">
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-court-500 to-emerald-700 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-court-500/20">
+            <i class="fa-solid fa-shuttlecock"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+              ShuttleLadder <span class="text-xs px-2 py-0.5 rounded-full bg-court-500/20 text-court-400 border border-court-500/30">Mix & Match Doubles</span>
+            </h1>
+            <p class="text-xs text-slate-400 hidden sm:block">Individual rating system with high-low split pairings & court controller</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex space-x-1 sm:space-x-2 bg-slate-950/60 p-1 rounded-xl border border-slate-800/80">
+          <button id="tab-matches-btn" onclick="switchTab('matches')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 bg-court-600 text-white shadow-md">
+            <i class="fa-solid fa-table-tennis-paddle-ball"></i> <span>Courts & Round</span>
+          </button>
+          <button id="tab-roster-btn" onclick="switchTab('roster')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center gap-2">
+            <i class="fa-solid fa-user-check"></i> <span>Attendance (<span id="tab-present-count">0</span>)</span>
+          </button>
+          <button id="tab-leaderboard-btn" onclick="switchTab('leaderboard')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center gap-2">
+            <i class="fa-solid fa-trophy"></i> <span>Leaderboard</span>
+          </button>
+          <button id="tab-history-btn" onclick="switchTab('history')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left"></i> <span>History</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+      <!-- Metrics Bar -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3 sm:p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400 font-medium">Present Players</p>
+            <p id="stat-present-players" class="text-xl sm:text-2xl font-bold text-white">0 / 0</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <i class="fa-solid fa-user-check text-lg"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3 sm:p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400 font-medium">Available Courts</p>
+            <p id="stat-courts-count" class="text-xl sm:text-2xl font-bold text-court-400">2 Courts</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-court-500/10 text-court-400 flex items-center justify-center">
+            <i class="fa-solid fa-layer-group text-lg"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3 sm:p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400 font-medium">Rounds Played</p>
+            <p id="stat-rounds-count" class="text-xl sm:text-2xl font-bold text-white">0</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <i class="fa-solid fa-rotate text-lg"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3 sm:p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400 font-medium">Top Rated Player</p>
+            <p id="stat-top-player" class="text-sm sm:text-base font-bold text-amber-400 truncate max-w-[120px] sm:max-w-[150px]">None</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+            <i class="fa-solid fa-crown text-lg"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toast container -->
+      <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+      <!-- TAB 1: COURTS & ROUND MANAGER -->
+      <div id="view-matches" class="space-y-6">
+        
+        <!-- Court Controller & Round Generation Control Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-court-950 to-slate-900 border border-court-800/50 rounded-2xl p-5 sm:p-6 relative overflow-hidden shadow-xl">
+          <div class="absolute right-0 top-0 bottom-0 w-1/3 court-bg-pattern pointer-events-none"></div>
+          
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            
+            <!-- Left: Info Header -->
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-court-500/20 text-court-300 text-xs font-semibold border border-court-500/30 mb-2">
+                <i class="fa-solid fa-sliders"></i> Session Court & Rotation Controller
+              </span>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-white">Generate Auto-Balanced Matchups</h2>
+              <p class="text-slate-300 text-sm max-w-xl mt-1">
+                Only present players are shuffled. Strongest and lower-ranked players are split on each court so top players never stack together.
+              </p>
+            </div>
+
+            <!-- Right: Controls (Court Selector + Shuffle Action) -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800">
+              
+              <!-- Court Count Selector -->
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                  <i class="fa-solid fa-border-all text-court-400"></i> Active Courts:
+                </label>
+                <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+                  <button onclick="adjustCourts(-1)" class="w-8 h-8 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm flex items-center justify-center transition-colors">
+                    -
+                  </button>
+                  <span id="court-count-display" class="w-10 text-center font-bold font-mono text-court-400 text-base">2</span>
+                  <button onclick="adjustCourts(1)" class="w-8 h-8 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm flex items-center justify-center transition-colors">
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action Button -->
+              <div class="flex-1 flex flex-col justify-end">
+                <button onclick="generateRound()" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-court-500 to-court-600 hover:from-court-400 hover:to-court-500 text-slate-950 font-bold text-sm transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg shadow-court-500/25 flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-shuffle text-base"></i>
+                  <span>Generate Balanced Round</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Benched / Sitting Out Bar -->
+        <div id="benched-players-bar" class="hidden bg-slate-900/90 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-200/90 text-sm">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-couch"></i>
+            </span>
+            <div>
+              <span class="font-semibold text-white">Benched This Round (Priority Next Round):</span>
+              <span id="benched-list" class="ml-1 text-amber-300 font-medium">None</span>
+            </div>
+          </div>
+          <span class="text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">
+            Fair rotation queue
+          </span>
+        </div>
+
+        <!-- Active Courts Grid Container -->
+        <div id="courts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Court cards inserted dynamically -->
+        </div>
+
+        <!-- Empty State if No Active Round -->
+        <div id="empty-courts-state" class="bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
+          <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 text-2xl">
+            <i class="fa-solid fa-table-tennis-paddle-ball"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-300">No Match Round In Progress</h3>
+          <p class="text-sm text-slate-400 max-w-md">Toggle present players in the attendance list, select your court count, then click "Generate Balanced Round" to start.</p>
+        </div>
+
+        <!-- Submit Round Scores Bar -->
+        <div id="submit-round-bar" class="hidden flex justify-end">
+          <button onclick="submitRoundScores()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-court-500 hover:bg-court-400 text-slate-950 font-bold text-base transition-all duration-200 shadow-xl shadow-court-500/30 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>Submit Round Scores & Re-Rank</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: ROSTER & ATTENDANCE -->
+      <div id="view-roster" class="hidden space-y-6">
+        
+        <!-- Attendance Header & Quick Controls -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-user-check text-court-400"></i> Attendance Manager
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Toggle who is present today. Absent players keep their rank but won't be assigned to courts.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setAllAttendance(true)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-check-double text-court-400"></i> Mark All Present
+            </button>
+            <button onclick="setAllAttendance(false)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-xmark text-rose-400"></i> Mark All Absent
+            </button>
+          </div>
+        </div>
+
+        <!-- Add New Player Form -->
+        <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3">
+          <div class="flex-1 w-full">
+            <input type="text" id="new-player-input" placeholder="Enter new player name..." 
+              class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-court-500">
+          </div>
+          <button onclick="addNewPlayer()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-court-600 hover:bg-court-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-user-plus"></i> Add Player
+          </button>
+        </div>
+
+        <!-- Attendance List Grid -->
+        <div id="attendance-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Attendance cards inserted dynamically -->
+        </div>
+
+      </div>
+
+      <!-- TAB 3: LEADERBOARD -->
+      <div id="view-leaderboard" class="hidden space-y-6">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-trophy text-amber-400"></i> Individual Player Ladder
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Rankings update after every game using team-weighted point margins.</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-950/80 text-slate-400 text-xs uppercase font-semibold border-b border-slate-800">
+                  <th class="py-4 px-4 sm:px-6">Rank</th>
+                  <th class="py-4 px-4 sm:px-6">Player</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Status</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Rating</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Matches</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">W / L</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Win %</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Pt Diff</th>
+                  <th class="py-4 px-4 sm:px-6 text-center">Form</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody" class="divide-y divide-slate-800/60 text-sm">
+                <!-- Leaderboard rows dynamically inserted -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: MATCH HISTORY -->
+      <div id="view-history" class="hidden space-y-6">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-court-400"></i> Match History
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Full log of completed rounds, court scores, and point deltas.</p>
+          </div>
+          <button onclick="clearMatchHistory()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold transition-all">
+            <i class="fa-solid fa-trash-can mr-1"></i> Clear Log
+          </button>
+        </div>
+
+        <div id="history-container" class="space-y-4">
+          <!-- History entries -->
+        </div>
+
+        <div id="empty-history-state" class="bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-12 text-center text-slate-400 space-y-2">
+          <i class="fa-solid fa-history text-3xl text-slate-600 mb-2"></i>
+          <p class="font-semibold text-slate-300">No match rounds played yet.</p>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-950 py-4">
+      <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>Badminton High-Low Mix & Match Ladder &bull; Dynamic Court Controller</p>
+        <p class="flex items-center gap-1">
+          <span>Individual Skill Evaluator</span> <i class="fa-solid fa-shield-halved text-court-500"></i>
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Initial State Variables
+    let selectedCourts = 2;
+    let currentRound = null;
+    let matchHistory = [];
+    let activeTab = 'matches';
+
+    // Roster with Present/Absent status
+    let players = [
+      { id: '1', name: 'Marcus Chen', rating: 1420, prevRank: 1, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '2', name: 'Sarah Jenkins', rating: 1380, prevRank: 2, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '3', name: 'Alex Rivera', rating: 1310, prevRank: 3, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '4', name: 'David Kim', rating: 1260, prevRank: 4, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '5', name: 'Priya Sharma', rating: 1190, prevRank: 5, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '6', name: 'Viktor Lind', rating: 1140, prevRank: 6, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '7', name: 'Elena Rostova', rating: 1080, prevRank: 7, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '8', name: 'Tariq Al-Mansoor', rating: 1020, prevRank: 8, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: true, sitOutCount: 0 },
+      { id: '9', name: 'Hannah Wright', rating: 980, prevRank: 9, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: false, sitOutCount: 0 },
+      { id: '10', name: 'Liam O\'Connor', rating: 940, prevRank: 10, matches: 0, wins: 0, losses: 0, ptDiff: 0, form: [], present: false, sitOutCount: 0 }
+    ];
+
+    function switchTab(tab) {
+      activeTab = tab;
+      const tabs = ['matches', 'roster', 'leaderboard', 'history'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const btnEl = document.getElementById(`tab-${t}-btn`);
+        if (t === tab) {
+          viewEl.classList.remove('hidden');
+          btnEl.className = "px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 bg-court-600 text-white shadow-md";
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.className = "px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 transition-all duration-200 flex items-center gap-2";
+        }
+      });
+
+      if (tab === 'roster') renderAttendanceGrid();
+      if (tab === 'leaderboard') renderLeaderboard();
+      if (tab === 'history') renderHistory();
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColors = {
+        success: 'bg-emerald-950 border-emerald-500/50 text-emerald-200',
+        error: 'bg-rose-950 border-rose-500/50 text-rose-200',
+        info: 'bg-slate-900 border-court-500/50 text-court-200'
+      };
+
+      toast.className = `px-4 py-3 rounded-xl border ${bgColors[type] || bgColors.info} shadow-xl text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i><span>${message}</span>`;
+      
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function adjustCourts(delta) {
+      const newCount = selectedCourts + delta;
+      if (newCount < 1) {
+        showToast('At least 1 court is required.', 'error');
+        return;
+      }
+      if (newCount > 8) {
+        showToast('Maximum 8 courts allowed.', 'error');
+        return;
+      }
+      selectedCourts = newCount;
+      document.getElementById('court-count-display').textContent = selectedCourts;
+      document.getElementById('stat-courts-count').textContent = `${selectedCourts} Court${selectedCourts > 1 ? 's' : ''}`;
+      showToast(`Selected courts set to ${selectedCourts}.`, 'info');
+    }
+
+    function toggleAttendance(id) {
+      const p = players.find(x => x.id === id);
+      if (p) {
+        p.present = !p.present;
+        updateDashboardStats();
+        renderAttendanceGrid();
+        showToast(`${p.name} marked ${p.present ? 'Present' : 'Absent'}.`, p.present ? 'success' : 'info');
+      }
+    }
+
+    function setAllAttendance(status) {
+      players.forEach(p => p.present = status);
+      updateDashboardStats();
+      renderAttendanceGrid();
+      showToast(`All players marked ${status ? 'Present' : 'Absent'}.`, 'info');
+    }
+
+    function addNewPlayer() {
+      const input = document.getElementById('new-player-input');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newP = {
+        id: Date.now().toString(),
+        name: name,
+        rating: 1000,
+        prevRank: players.length + 1,
+        matches: 0,
+        wins: 0,
+        losses: 0,
+        ptDiff: 0,
+        form: [],
+        present: true,
+        sitOutCount: 0
+      };
+
+      players.push(newP);
+      input.value = '';
+      updateDashboardStats();
+      renderAttendanceGrid();
+      showToast(`Added ${name} to roster!`, 'success');
+    }
+
+    function renderAttendanceGrid() {
+      const grid = document.getElementById('attendance-grid');
+      grid.innerHTML = players.map(p => `
+        <div class="bg-slate-900 border ${p.present ? 'border-court-500/50 shadow-court-500/10' : 'border-slate-800 opacity-60'} rounded-2xl p-4 flex items-center justify-between transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl ${p.present ? 'bg-court-500/20 text-court-400' : 'bg-slate-800 text-slate-500'} flex items-center justify-center font-bold text-sm">
+              ${p.name.charAt(0)}
+            </div>
+            <div>
+              <p class="font-bold text-white text-sm">${p.name}</p>
+              <p class="text-xs text-slate-400">Rating: <span class="font-mono text-court-400 font-semibold">${p.rating}</span></p>
+            </div>
+          </div>
+
+          <!-- Present/Absent Switch -->
+          <button onclick="toggleAttendance('${p.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${p.present ? 'bg-emerald-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+            <i class="fa-solid ${p.present ? 'fa-check' : 'fa-minus'}"></i>
+            <span>${p.present ? 'Present' : 'Absent'}</span>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function generateRound() {
+      // 1. Filter present players
+      const presentPlayers = players.filter(p => p.present);
+      if (presentPlayers.length < 4) {
+        showToast('At least 4 PRESENT players are required to generate a doubles round!', 'error');
+        return;
+      }
+
+      // 2. Determine max possible courts given present player count and selected court limit
+      const maxCourtsPossible = Math.floor(presentPlayers.length / 4);
+      const activeCourtCount = Math.min(selectedCourts, maxCourtsPossible);
+
+      if (activeCourtCount === 0) {
+        showToast('Not enough present players for 1 court (needs 4).', 'error');
+        return;
+      }
+
+      const totalPlayingCount = activeCourtCount * 4;
+
+      // 3. Sort present candidates: prioritize those with high sitOutCount (benched before), then by rating
+      const sortedCandidates = [...presentPlayers].sort((a, b) => {
+        if (b.sitOutCount !== a.sitOutCount) {
+          return b.sitOutCount - a.sitOutCount; // Benched players get priority
+        }
+        return b.rating - a.rating;
+      });
+
+      const playingPool = sortedCandidates.slice(0, totalPlayingCount);
+      const benchedPool = sortedCandidates.slice(totalPlayingCount);
+
+      // Increment sit-out counter for benched players
+      benchedPool.forEach(p => p.sitOutCount += 1);
+
+      // Sort playing pool strictly by rating for High-Low allocation
+      playingPool.sort((a, b) => b.rating - a.rating);
+
+      const courts = [];
+      for (let i = 0; i < activeCourtCount; i++) {
+        // Take 4 players for this court tier
+        const courtFour = playingPool.slice(i * 4, (i + 1) * 4);
+        
+        // Ordered H1, H2, L2, L1
+        const H1 = courtFour[0];
+        const H2 = courtFour[1];
+        const L2 = courtFour[2];
+        const L1 = courtFour[3];
+
+        // Force High-Low pairing: (H1 + L1) vs (H2 + L2)
+        courts.push({
+          courtNumber: i + 1,
+          teamA: [H1, L1],
+          teamB: [H2, L2],
+          scoreA: 21,
+          scoreB: 19
+        });
+      }
+
+      currentRound = {
+        id: Date.now(),
+        roundNumber: matchHistory.length + 1,
+        courts: courts,
+        benched: benchedPool
+      };
+
+      renderCourts();
+      updateDashboardStats();
+      showToast(`Round ${currentRound.roundNumber} generated for ${activeCourtCount} court(s)!`, 'success');
+    }
+
+    function renderCourts() {
+      const container = document.getElementById('courts-container');
+      const emptyState = document.getElementById('empty-courts-state');
+      const submitBar = document.getElementById('submit-round-bar');
+      const benchedBar = document.getElementById('benched-players-bar');
+      const benchedList = document.getElementById('benched-list');
+
+      if (!currentRound || currentRound.courts.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        submitBar.classList.add('hidden');
+        benchedBar.classList.add('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      submitBar.classList.remove('hidden');
+
+      if (currentRound.benched && currentRound.benched.length > 0) {
+        benchedBar.classList.remove('hidden');
+        benchedList.textContent = currentRound.benched.map(p => p.name).join(', ');
+      } else {
+        benchedBar.classList.add('hidden');
+      }
+
+      container.innerHTML = currentRound.courts.map((court, idx) => {
+        const avgRatingA = Math.round((court.teamA[0].rating + court.teamA[1].rating) / 2);
+        const avgRatingB = Math.round((court.teamB[0].rating + court.teamB[1].rating) / 2);
+
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+            <!-- Court Header -->
+            <div class="bg-slate-950 px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+              <span class="font-bold text-white text-sm flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-court-500"></span> Court ${court.courtNumber}
+              </span>
+              <span class="text-xs text-court-400 bg-court-950 px-2.5 py-1 rounded-full border border-court-800 font-semibold">
+                High-Low Split Pairings
+              </span>
+            </div>
+
+            <!-- Teams Matchup -->
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center relative">
+                
+                <!-- TEAM A -->
+                <div class="bg-slate-950/80 border border-court-500/30 rounded-xl p-4 space-y-3">
+                  <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <span class="text-xs font-bold text-court-400 uppercase tracking-wider">Team A</span>
+                    <span class="text-xs text-slate-400">Avg ${avgRatingA}</span>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between text-sm bg-slate-900 p-2 rounded-lg">
+                      <span class="font-semibold text-white truncate"><span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold mr-1.5">H</span>${court.teamA[0].name}</span>
+                      <span class="text-xs text-slate-400 font-mono">${court.teamA[0].rating}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm bg-slate-900 p-2 rounded-lg">
+                      <span class="font-semibold text-slate-200 truncate"><span class="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold mr-1.5">L</span>${court.teamA[1].name}</span>
+                      <span class="text-xs text-slate-400 font-mono">${court.teamA[1].rating}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TEAM B -->
+                <div class="bg-slate-950/80 border border-indigo-500/30 rounded-xl p-4 space-y-3">
+                  <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Team B</span>
+                    <span class="text-xs text-slate-400">Avg ${avgRatingB}</span>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between text-sm bg-slate-900 p-2 rounded-lg">
+                      <span class="font-semibold text-white truncate"><span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold mr-1.5">H</span>${court.teamB[0].name}</span>
+                      <span class="text-xs text-slate-400 font-mono">${court.teamB[0].rating}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm bg-slate-900 p-2 rounded-lg">
+                      <span class="font-semibold text-slate-200 truncate"><span class="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold mr-1.5">L</span>${court.teamB[1].name}</span>
+                      <span class="text-xs text-slate-400 font-mono">${court.teamB[1].rating}</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Match Score Input -->
+              <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 flex items-center justify-around gap-3">
+                <div class="flex items-center gap-2">
+                  <label class="text-xs text-court-400 font-bold">Team A Score:</label>
+                  <input type="number" min="0" max="30" value="${court.scoreA}" id="score-a-${idx}" 
+                    class="w-16 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-bold text-base focus:border-court-500 focus:outline-none">
+                </div>
+
+                <span class="text-slate-600 font-bold">-</span>
+
+                <div class="flex items-center gap-2">
+                  <label class="text-xs text-indigo-400 font-bold">Team B Score:</label>
+                  <input type="number" min="0" max="30" value="${court.scoreB}" id="score-b-${idx}" 
+                    class="w-16 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-bold text-base focus:border-indigo-500 focus:outline-none">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function submitRoundScores() {
+      if (!currentRound || !currentRound.courts.length) return;
+
+      const K = 32;
+      const roundDetails = {
+        roundNumber: currentRound.roundNumber,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        matches: []
+      };
+
+      currentRound.courts.forEach((court, idx) => {
+        const inputA = document.getElementById(`score-a-${idx}`);
+        const inputB = document.getElementById(`score-b-${idx}`);
+
+        const scoreA = parseInt(inputA.value, 10) || 0;
+        const scoreB = parseInt(inputB.value, 10) || 0;
+
+        if (scoreA === scoreB) {
+          showToast(`Court ${court.courtNumber} cannot end in a tie!`, 'error');
+          return;
+        }
+
+        const teamA = court.teamA;
+        const teamB = court.teamB;
+
+        const ratingA = (teamA[0].rating + teamA[1].rating) / 2;
+        const ratingB = (teamB[0].rating + teamB[1].rating) / 2;
+
+        const expectedA = 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
+        const expectedB = 1 - expectedA;
+
+        const actualA = scoreA > scoreB ? 1 : 0;
+        const actualB = 1 - actualA;
+
+        const scoreDiff = scoreA - scoreB;
+        const marginMultiplier = 1 + (Math.abs(scoreDiff) / 21);
+
+        const deltaA = Math.round(K * marginMultiplier * (actualA - expectedA));
+        const deltaB = Math.round(K * marginMultiplier * (actualB - expectedB));
+
+        teamA.forEach(player => {
+          const p = players.find(x => x.id === player.id);
+          if (p) {
+            p.rating += deltaA;
+            p.matches += 1;
+            p.ptDiff += scoreDiff;
+            if (actualA === 1) p.wins += 1; else p.losses += 1;
+            p.form.unshift(actualA === 1 ? 'W' : 'L');
+            if (p.form.length > 5) p.form.pop();
+          }
+        });
+
+        teamB.forEach(player => {
+          const p = players.find(x => x.id === player.id);
+          if (p) {
+            p.rating += deltaB;
+            p.matches += 1;
+            p.ptDiff -= scoreDiff;
+            if (actualB === 1) p.wins += 1; else p.losses += 1;
+            p.form.unshift(actualB === 1 ? 'W' : 'L');
+            if (p.form.length > 5) p.form.pop();
+          }
+        });
+
+        roundDetails.matches.push({
+          courtNumber: court.courtNumber,
+          teamA: teamA.map(p => p.name).join(' & '),
+          teamB: teamB.map(p => p.name).join(' & '),
+          scoreA: scoreA,
+          scoreB: scoreB,
+          deltaA: deltaA,
+          deltaB: deltaB
+        });
+      });
+
+      matchHistory.unshift(roundDetails);
+      currentRound = null;
+      
+      updateRanksAndMovement();
+      renderCourts();
+      updateDashboardStats();
+      showToast('Scores submitted and rankings updated!', 'success');
+      setTimeout(() => switchTab('leaderboard'), 400);
+    }
+
+    function updateRanksAndMovement() {
+      // Sort players to record rank positions
+      const sorted = [...players].sort((a, b) => b.rating - a.rating || b.ptDiff - a.ptDiff);
+      sorted.forEach((p, idx) => {
+        p.prevRank = p.currentRank || (idx + 1);
+        p.currentRank = idx + 1;
+      });
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-tbody');
+      const sorted = [...players].sort((a, b) => b.rating - a.rating || b.ptDiff - a.ptDiff);
+
+      tbody.innerHTML = sorted.map((p, index) => {
+        const rank = index + 1;
+        let rankBadge = `<span class="font-extrabold text-slate-400">#${rank}</span>`;
+        if (rank === 1) rankBadge = `<span class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 inline-flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-crown"></i></span>`;
+        if (rank === 2) rankBadge = `<span class="w-7 h-7 rounded-full bg-slate-400/20 text-slate-300 border border-slate-400/40 inline-flex items-center justify-center font-bold text-xs">2</span>`;
+        if (rank === 3) rankBadge = `<span class="w-7 h-7 rounded-full bg-amber-700/20 text-amber-600 border border-amber-700/40 inline-flex items-center justify-center font-bold text-xs">3</span>`;
+
+        const winRate = p.matches > 0 ? Math.round((p.wins / p.matches) * 100) : 0;
+        
+        const formPills = p.form.slice(0, 3).map(res => 
+          res === 'W' 
+            ? `<span class="px-1.5 py-0.5 text-[10px] rounded font-bold bg-court-500/20 text-court-400 border border-court-500/30">W</span>`
+            : `<span class="px-1.5 py-0.5 text-[10px] rounded font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">L</span>`
+        ).join(' ');
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="py-3.5 px-4 sm:px-6 font-medium">${rankBadge}</td>
+            <td class="py-3.5 px-4 sm:px-6">
+              <span class="font-bold text-white block">${p.name}</span>
+            </td>
+            <td class="py-3.5 px-4 sm:px-6 text-center">
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${p.present ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}">
+                ${p.present ? 'Present' : 'Absent'}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 sm:px-6 text-center font-mono font-bold text-court-400">${p.rating}</td>
+            <td class="py-3.5 px-4 sm:px-6 text-center text-slate-300">${p.matches}</td>
+            <td class="py-3.5 px-4 sm:px-6 text-center text-slate-300">${p.wins} / ${p.losses}</td>
+            <td class="py-3.5 px-4 sm:px-6 text-center font-semibold text-slate-200">${winRate}%</td>
+            <td class="py-3.5 px-4 sm:px-6 text-center font-mono ${p.ptDiff > 0 ? 'text-emerald-400' : p.ptDiff < 0 ? 'text-rose-400' : 'text-slate-400'}">
+              ${p.ptDiff > 0 ? '+' : ''}${p.ptDiff}
+            </td>
+            <td class="py-3.5 px-4 sm:px-6 text-center">
+              <div class="flex items-center justify-center gap-1">${formPills || '<span class="text-xs text-slate-600">-</span>'}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      const emptyState = document.getElementById('empty-history-state');
+
+      if (matchHistory.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.innerHTML = matchHistory.map(round => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="font-bold text-white text-sm flex items-center gap-2">
+              <i class="fa-solid fa-flag-checkered text-court-400"></i> Round ${round.roundNumber}
+            </span>
+            <span class="text-xs text-slate-400">${round.timestamp}</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${round.matches.map(m => `
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs sm:text-sm">
+                <div class="space-y-1">
+                  <div class="font-medium text-slate-200">${m.teamA} <span class="font-mono text-court-400">(${m.deltaA >= 0 ? '+' : ''}${m.deltaA})</span></div>
+                  <div class="font-medium text-slate-200">${m.teamB} <span class="font-mono text-indigo-400">(${m.deltaB >= 0 ? '+' : ''}${m.deltaB})</span></div>
+                </div>
+                <div class="font-mono font-bold text-white bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-base">
+                  ${m.scoreA} - ${m.scoreB}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateDashboardStats() {
+      const presentCount = players.filter(p => p.present).length;
+      document.getElementById('stat-present-players').textContent = `${presentCount} / ${players.length}`;
+      document.getElementById('tab-present-count').textContent = presentCount;
+
+      const top = [...players].sort((a, b) => b.rating - a.rating)[0];
+      document.getElementById('stat-top-player').textContent = top ? `${top.name} (${top.rating})` : 'None';
+
+      document.getElementById('stat-rounds-count').textContent = matchHistory.length;
+    }
+
+    function clearMatchHistory() {
+      if (confirm('Are you sure you want to clear match history?')) {
+        matchHistory = [];
+        renderHistory();
+        updateDashboardStats();
+        showToast('Match history cleared.', 'info');
+      }
+    }
+
+    // Initialize application on page load
+    window.onload = function() {
+      updateDashboardStats();
+      renderAttendanceGrid();
+    };
+  </script>
+</body>
+</html>
